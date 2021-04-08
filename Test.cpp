@@ -5,142 +5,169 @@
 //
 
 #include <iostream>
+#include <fstream>
+#include <array>
 #include "RTree.h"
-
-using namespace std;
 
 typedef int ValueType;
 
 struct Rect
 {
-  Rect()  {}
+   Rect() {}
 
-  Rect(int a_minX, int a_minY, int a_maxX, int a_maxY)
-  {
-    min[0] = a_minX;
-    min[1] = a_minY;
+   Rect(int a_minX, int a_minY, int a_maxX, int a_maxY)
+   {
+      min[0] = a_minX;
+      min[1] = a_minY;
 
-    max[0] = a_maxX;
-    max[1] = a_maxY;
-  }
+      max[0] = a_maxX;
+      max[1] = a_maxY;
+   }
 
-
-  int min[2];
-  int max[2];
+   std::array<int, 2> min;
+   std::array<int, 2> max;
 };
 
-struct Rect rects[] =
-{
-  Rect(0, 0, 2, 2), // xmin, ymin, xmax, ymax (for 2 dimensional RTree)
-  Rect(5, 5, 7, 7),
-  Rect(8, 5, 9, 6),
-  Rect(7, 1, 9, 2),
+struct Rect rects[] = {
+    Rect(0, 0, 2, 2), // xmin, ymin, xmax, ymax (for 2 dimensional RTree)
+    Rect(5, 5, 7, 7),
+    Rect(8, 5, 9, 6),
+    Rect(7, 1, 9, 2),
 };
 
 int nrects = sizeof(rects) / sizeof(rects[0]);
 
-Rect search_rect(6, 4, 10, 6); // search will find above rects that this one overlaps
-
+Rect search_rect(6, 4, 10,
+                 6); // search will find above rects that this one overlaps
 
 bool MySearchCallback(ValueType id)
 {
-  cout << "Hit data rect " << id << "\n";
-  return true; // keep going
+   std::cout << "Hit data rect " << id << "\n";
+   return true; // keep going
 }
-
 
 int main()
 {
-  typedef RTree<ValueType, int, 2, float> MyTree;
-  MyTree tree;
+   typedef RTree<ValueType, int, 2, float> MyTree;
+   MyTree                                  tree;
 
-  int i, nhits;
-  cout << "nrects = " << nrects << "\n";
+   std::cout << "nrects = " << nrects << "\n";
 
-  for(i=0; i<nrects; i++)
-  {
-    tree.Insert(rects[i].min, rects[i].max, i); // Note, all values including zero are fine in this version
-  }
+   for (int i = 0; i < nrects; i++)
+   {
+      tree.Insert(
+          rects[i].min, rects[i].max,
+          i); // Note, all values including zero are fine in this version
+   }
 
-  nhits = tree.Search(search_rect.min, search_rect.max, MySearchCallback);
+   auto nhits = tree.Search(search_rect.min, search_rect.max, MySearchCallback);
 
-  cout << "Search resulted in " << nhits << " hits\n";
+   std::cout << "Search resulted in " << nhits << " hits\n";
 
-  // Iterator test
-  int itIndex = 0;
-  MyTree::Iterator it;
-  for( tree.GetFirst(it);
-       !tree.IsNull(it);
-       tree.GetNext(it) )
-  {
-    int value = tree.GetAt(it);
+   int itIndex = 0;
+   for (auto it = tree.begin(); it != tree.end(); ++it)
+   {
+      int value = *it; //notree.GetAt(it);
 
-    int boundsMin[2] = {0,0};
-    int boundsMax[2] = {0,0};
-    it.GetBounds(boundsMin, boundsMax);
-    cout << "it[" << itIndex++ << "] " << value << " = (" << boundsMin[0] << "," << boundsMin[1] << "," << boundsMax[0] << "," << boundsMax[1] << ")\n";
-  }
+      std::array<int, 2> boundsMin({0, 0});
+      std::array<int, 2> boundsMax({0, 0});
+      it.GetBounds(boundsMin, boundsMax);
+      std::cout << "it[" << itIndex++ << "] " << value << " = (" << boundsMin[0]
+                << "," << boundsMin[1] << "," << boundsMax[0] << ","
+                << boundsMax[1] << ")\n";
+   }
 
-  // Iterator test, alternate syntax
-  itIndex = 0;
-  tree.GetFirst(it);
-  while( !it.IsNull() )
-  {
-    int value = *it;
-    ++it;
-    cout << "it[" << itIndex++ << "] " << value << "\n";
-  }
+   itIndex = 0;
+   for (const auto &val : tree)
+   {
+      std::cout << "it[" << itIndex++ << "] " << val << "\n";
+   }
 
-  // test copy constructor
-  MyTree copy = tree;
+   // test copy constructor
+   MyTree copy = tree;
 
-  // Iterator test
-  itIndex = 0;
-  for (copy.GetFirst(it);
-       !copy.IsNull(it);
-       copy.GetNext(it) )
-  {
-    int value = copy.GetAt(it);
+   if(copy == tree) std::cout << "Trees match" << std::endl;
+   // Iterator test
+   itIndex = 0;
+   for (auto it = copy.begin(); it != copy.end(); ++it)
+   {
+      int value = *it; //.GetAt(it);
 
-    int boundsMin[2] = {0,0};
-    int boundsMax[2] = {0,0};
-    it.GetBounds(boundsMin, boundsMax);
-    cout << "it[" << itIndex++ << "] " << value << " = (" << boundsMin[0] << "," << boundsMin[1] << "," << boundsMax[0] << "," << boundsMax[1] << ")\n";
-  }
+      std::array<int, 2> boundsMin({0, 0});
+      std::array<int, 2> boundsMax({0, 0});
+      it.GetBounds(boundsMin, boundsMax);
+      std::cout << "it[" << itIndex++ << "] " << value << " = (" << boundsMin[0]
+                << "," << boundsMin[1] << "," << boundsMax[0] << ","
+                << boundsMax[1] << ")\n";
+   }
 
-  // Iterator test, alternate syntax
-  itIndex = 0;
-  copy.GetFirst(it);
-  while( !it.IsNull() )
-  {
-    int value = *it;
-    ++it;
-    cout << "it[" << itIndex++ << "] " << value << "\n";
-  }
+   itIndex = 0;
+   for (auto val : copy)
+   {
+      std::cout << "it[" << itIndex++ << "] " << val << "\n";
+   }
 
-  return 0;
+   for (auto &val : copy)
+   {
+      val = itIndex++;
+   }
+   itIndex = 0;
+   for (auto val : copy)
+   {
+      std::cout << "it[" << itIndex++ << "] " << val << "\n";
+   }
 
-  // Output:
-  //
-  // nrects = 4
-  // Hit data rect 1
-  // Hit data rect 2
-  // Search resulted in 2 hits
-  // it[0] 0 = (0,0,2,2)
-  // it[1] 1 = (5,5,7,7)
-  // it[2] 2 = (8,5,9,6)
-  // it[3] 3 = (7,1,9,2)
-  // it[0] 0
-  // it[1] 1
-  // it[2] 2
-  // it[3] 3
-  // it[0] 0 = (0,0,2,2)
-  // it[1] 1 = (5,5,7,7)
-  // it[2] 2 = (8,5,9,6)
-  // it[3] 3 = (7,1,9,2)
-  // it[0] 0
-  // it[1] 1
-  // it[2] 2
-  // it[3] 3
+   std::ofstream dump_tree("tree.txt");
+   if (dump_tree)
+   {
+      dump_tree << copy;
+
+      copy.RemoveAll();
+      std::cout << "tree count : " << copy.Count() << std::endl;
+      std::ifstream load_tree("tree.txt");
+      if (load_tree)
+      {
+         load_tree >> copy;
+         itIndex = 0;
+         for (auto val : copy)
+         {
+            std::cout << "it[" << itIndex++ << "] " << val << "\n";
+         }
+      }
+   }
+   return 0;
 }
+   // Output:
+   //
+   /*
+nrects = 4
+Hit data rect 1
+Hit data rect 2
+Search resulted in 2 hits
+it[0] 0 = (0,0,2,2)
+it[1] 1 = (5,5,7,7)
+it[2] 2 = (8,5,9,6)
+it[3] 3 = (7,1,9,2)
+it[0] 0
+it[1] 1
+it[2] 2
+it[3] 3
+it[0] 0 = (0,0,2,2)
+it[1] 1 = (5,5,7,7)
+it[2] 2 = (8,5,9,6)
+it[3] 3 = (7,1,9,2)
+it[0] 0
+it[1] 1
+it[2] 2
+it[3] 3
+it[0] 4
+it[1] 5
+it[2] 6
+it[3] 7
+tree count : 0
+it[0] 4
+it[1] 5
+it[2] 6
+it[3] 7
+*/
 

@@ -1,13 +1,17 @@
 .PHONY: all build test clean
 
-CXXFLAGS=-Wall -Wextra -Wpedantic -std=c++11
+CXX=g++-10
+CXXFLAGS= -Wall -Wextra -Wpedantic -std=c++2a 
 
 all: build
 
-build: out out/Test out/TestBadData out/MemoryTest
+build: out out/Test out/TestBadData out/MemoryTest out/TreeTest
 
 out:
 	mkdir -p out
+
+out/TreeTest: TreeTest.cpp RTree.h
+	$(CXX) -o $@ ${CXXFLAGS} $<
 
 out/Test: Test.cpp RTree.h
 	$(CXX) -o $@ ${CXXFLAGS} $<
