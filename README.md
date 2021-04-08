@@ -36,6 +36,7 @@ a single header file and can be included without compiling.
 - 2004 Templated C++ port by Greg Douglas
 - 2011 Modified the container to support more data types, by Yariv Barkan
 - 2017 Modified Search to take C++11 function to allow lambdas and added const qualifier, by Gero Mueller
+- 2021 C++17 version by Thomas Perschke
 
 ## License
 
