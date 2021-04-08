@@ -59,6 +59,13 @@ licensing idea.
 
 ## Recent Change Log
 
+### 08 April 2021
+
+- Added C++17 branch
+- Major rewrite of RTree code 
+- added optional Catch2 unit test code
+
+
 ### 31 Jan 2018
 
 - Added copy constructor
